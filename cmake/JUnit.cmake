@@ -12,16 +12,31 @@
 #   using the specified class path.
 #
 
-find_file(JUNIT_JAR
+# search for the JAR providing JUNIT versin 4
+# Unfortunately GLOB ? means exactly one, so cannot use it to make the - optional!
+## GLOB EXPRESSION: https://facelessuser.github.io/wcmatch/glob/
+file(GLOB JUNIT_JAR
+                ${JAVA_LIB_INSTALL_DIR}/junit4.jar
+                ${JAVA_LIB_INSTALL_DIR}/junit-4*.jar
+                /usr/share/java/junit4.jar
+                /usr/share/java/junit-4*.jar
+                /opt/local/share/java/junit.jar     # Macport
+                /opt/local/share/java/junit4.jar
+                /opt/local/share/java/junit-4*.jar
+                /usr/local/share/java/junit4.jar
+                /usr/local/share/java/junit-4*.jar)
+MARK_AS_ADVANCED(JUNIT_JAR)
+find_file(HAMCREST
     NAMES
-        junit.jar
+        hamcrest-core.jar
     PATHS
         ${JAVA_LIB_INSTALL_DIR}
         /usr/share/java
-	/opt/local/share/java
-	/usr/local/share/java
-)
-MARK_AS_ADVANCED(JUNIT_JAR)
+	    /opt/local/share/java
+	    /usr/local/share/java
+	    /opt/local/share/java/)
+MARK_AS_ADVANCED(HAMCREST)
+
 
 function(add_junit_test TARGET_NAME)
 
@@ -54,6 +69,7 @@ function(add_junit_test TARGET_NAME)
 
     endforeach(ARG)
 
+    # this may be obsolete or not corret for the new JUnit4 version (rather than 3.8)
     add_custom_target(${TARGET_NAME}
         COMMAND
             mkdir -p "${REPORTS_DIR}"

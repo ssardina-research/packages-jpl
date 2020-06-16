@@ -3,7 +3,7 @@
     Author:        Paul Singleton, Fred Dushin and Jan Wielemaker
     E-mail:        paul@jbgb.com
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2004-2017, Paul Singleton
+    Copyright (c)  2004-2020, Paul Singleton
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -84,7 +84,6 @@
     ]).
 :- autoload(library(apply),[maplist/2]).
 :- autoload(library(debug),[debugging/1,debug/3]).
-:- autoload(library(filesex),[directory_file_path/3]).
 :- autoload(library(lists),
 	    [member/2,nth0/3,nth1/3,append/3,flatten/2,select/3]).
 :- autoload(library(shlib),[load_foreign_library/1]).
@@ -1219,7 +1218,7 @@ jpl_z5s_to_most_specific_z5(Zs, Z) :-
 %
 %  ==
 %  ?- jpl_pl_lib_version(V).
-%  V = '7.4.0-alpha'.
+%  V = '7.6.1'.
 %  ==
 
 jpl_pl_lib_version(VersionString) :-
@@ -1241,7 +1240,7 @@ jpl_pl_lib_version(VersionString) :-
 %  Status = alpha.
 %  ==
 
-jpl_pl_lib_version(7, 4, 0, alpha).  % jref as blob
+jpl_pl_lib_version(7, 6, 1, stable).  % jref as blob
 
 %! jpl_c_lib_version(-Version)
 %
@@ -2506,7 +2505,13 @@ jpl_class_to_classname(C, CN) :-
 
 %! jpl_class_to_raw_classname(+Class:jref, -ClassName:rawName)
 %
-% Hhmm, I forget exactly what a "raw" classname is.
+% The "raw classname" is the "name of the entity" as returned by
+% Class.getName()
+%
+% For example: "java.lang.String", "byte", "[Ljava.lang.Object;", "[[[[[[[I"
+%
+% @see https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()
+%      https://docs.oracle.com/en/java/javase/14/docs/api/java.base/java/lang/Class.html#getName()
 
 jpl_class_to_raw_classname(Cobj, CN) :-
     jpl_classname_to_class('java.lang.Class', CC),      % cached?
@@ -3959,10 +3964,8 @@ user:file_search_path(jar, swi(lib)).
 
 classpath(DirOrJar) :-
     getenv('CLASSPATH', ClassPath),
-    (   current_prolog_flag(windows, true)
-    ->  atomic_list_concat(Elems, (;), ClassPath)
-    ;   atomic_list_concat(Elems, :, ClassPath)
-    ),
+    search_path_separator(Sep),
+    atomic_list_concat(Elems, Sep, ClassPath),
     member(DirOrJar, Elems).
 
 %!  add_search_path(+Var, +Value) is det.
@@ -4105,7 +4108,10 @@ add_jpl_to_classpath :-
     !.
 add_jpl_to_classpath :-
     classpath(Dir),
-    directory_file_path(Dir, 'jpl.jar', File),
+    (   sub_atom(Dir, _, _, 0, /)
+    ->  atom_concat(Dir, 'jpl.jar', File)
+    ;   atom_concat(Dir, '/jpl.jar', File)
+    ),
     access_file(File, read),
     !.
 add_jpl_to_classpath :-
