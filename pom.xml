@@ -164,7 +164,9 @@
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <source>8</source>
                     <excludePackageNames>org.jpl7.util;org.jpl7.test;org.jpl7.test.*</excludePackageNames>
-                    <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+                    <!-- Just make sure JAVA_HOME is correctly set
+                        <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+                    -->
                 </configuration>
                 <executions>
                     <execution>
